@@ -34,7 +34,7 @@ class SQLite3Prcessor:
         # create db if needed
         self.log.debug('initializing db: ' + self._db)
         print('hier')
-        self._conn = sqlite3.connect(self._db, check_same_thread=False)
+        self._conn = sqlite3.connect(self._db,detect_types=sqlite3.PARSE_DECLTYPES,check_same_thread=False, )
         self._conn.isolation_level = None # -> autocommit
         self._conn.execute("""
         CREATE TABLE IF NOT EXISTS gas_meter(
@@ -68,14 +68,18 @@ class SQLite3Prcessor:
         cursor.close()
 
 
-    def print_db(self):
+    def get_content(self):
         cursor = self._conn.cursor()
         # show contents of the TABLE
         cursor.execute("select * from gas_meter;")
         result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    def print_db(self):
+        result = self.get_content()
         for r in result:
             print(r)
-        cursor.close()
 
 
 
