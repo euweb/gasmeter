@@ -59,9 +59,9 @@ def on_message(client, userdata, msg):
     if msg.topic == MQTT_SET_TOPIC:
         try:
             new_val = float(msg.payload.decode())
-            gas_count = new_val
+            gas_count = round(new_val, 2)
             save_state()
-            client.publish(MQTT_STATE_TOPIC, gas_count, retain=True)
+            client.publish(MQTT_STATE_TOPIC, f"{gas_count:.2f}", retain=True)
             logger.info(f"Counter value set from HA: {gas_count}")
         except ValueError:
             logger.error("Invalid value received.")
@@ -85,9 +85,9 @@ def save_state():
 def on_impulse(channel=None):
     """Called on every pulse (real or simulated)"""
     global gas_count
-    gas_count += UNIT_PER_PULSE
+    gas_count = round(gas_count + UNIT_PER_PULSE, 2)
     save_state()
-    client.publish(MQTT_STATE_TOPIC, gas_count, retain=True)
+    client.publish(MQTT_STATE_TOPIC, f"{gas_count:.2f}", retain=True)
     prefix = "[SIMULATED] " if MOCK_MODE else ""
     logger.info(f"{prefix}Pulse detected → new reading: {gas_count:.2f} m³")
 
@@ -110,7 +110,7 @@ try:
         
         # regular backup
         if now - last_publish > PUBLISH_INTERVAL:
-            client.publish(MQTT_STATE_TOPIC, gas_count, retain=True)
+            client.publish(MQTT_STATE_TOPIC, f"{gas_count:.2f}", retain=True)
             last_publish = now
             if MOCK_MODE:
                 logger.debug(f"Backup publish: {gas_count:.2f} m³")
